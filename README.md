@@ -2,11 +2,12 @@
 
 ## Prototype:
 
-All credits for the design goes to https://www.behance.net/gallery/181528851/Mobile-Application-Planner-TimeWell 
+https://www.behance.net/gallery/181528851/Mobile-Application-Planner-TimeWell 
 
 ## Credits goes to:
 
 https://www.behance.net/khomenko_7
+
 https://www.behance.net/olesiapnm
 
 # Tech stack
