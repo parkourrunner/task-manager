@@ -1,43 +1,72 @@
-import { useState } from "react";
+import update from "immutability-helper";
+import type { FC } from "react";
+import { useCallback, useState } from "react";
 
-interface Task {
-  id: number;
-  name: string;
-  description: string;
-  dueDate: Date;
+import { Task } from "../task/Task";
+import { TASK_STATUES, TaskInfo } from "../../ItemTypes";
+import { DNDItem } from "../dnd-item/DNDItem";
+
+import "./TaskList.scss";
+
+interface TaskListProps {
+  tasksList: TaskInfo[];
 }
 
-const tasksMock: Task[] = [
-  {
-    id: 1,
-    name: "Task 1",
-    description: "This is task 1",
-    dueDate: new Date("2025/05/21"),
-  },
-  {
-    id: 2,
-    name: "Task 2",
-    description: "This is task 2",
-    dueDate: new Date("2025/06/21"),
-  },
-];
+export const TaskList: FC<TaskListProps> = ({
+  tasksList = [],
+}: TaskListProps) => {
+  const [tasks, setTasks] = useState(tasksList);
 
-interface Props {
-  tasks: Task[];
-}
+  const moveTask = useCallback((dragIndex: number, hoverIndex: number) => {
+    setTasks((prevTasks: TaskInfo[]) =>
+      update(prevTasks, {
+        $splice: [
+          [dragIndex, 1],
+          [hoverIndex, 0, prevTasks[dragIndex] as TaskInfo],
+        ],
+      })
+    );
+  }, []);
+  const handletoggleStatus = useCallback((task: TaskInfo) => {
+    let newStatus = task.status;
+    if (task.status === TASK_STATUES.PENDING) {
+      newStatus = TASK_STATUES.DONE;
+    } else if (task.status === TASK_STATUES.DONE) {
+      newStatus = TASK_STATUES.PENDING;
+    }
 
-const TaskList = ({ tasks }: Props) => {
-  const [tasksList, setTasksList] = useState(tasks || tasksMock || []);
+    setTasks((prevTasks: TaskInfo[]) => {
+      const newTasks = prevTasks.map((prevTask) => {
+        if (prevTask.id === task.id) {
+          return { ...prevTask, status: newStatus };
+        }
+        return prevTask;
+      });
+      return newTasks;
+    });
+  }, []);
+  const renderTask = useCallback(
+    (task: TaskInfo, index: number) => {
+      return (
+        <DNDItem
+          index={index}
+          moveItem={moveTask}
+          id={task.id}
+          type="task"
+          key={task.id}
+        >
+          <Task task={task} onToggleStatus={handletoggleStatus} />
+        </DNDItem>
+      );
+    },
+    [moveTask]
+  );
+
   return (
-    <div>
-      <h1>Tasks</h1>
-      <ul>
-        {tasksList.map((task) => (
-          <li key={task.id}>{task.name}</li>
-        ))}
-      </ul>
-    </div>
+    <>
+      <div className="task-list">
+        {tasks.map((task, index) => renderTask(task, index))}
+      </div>
+    </>
   );
 };
-
-export default TaskList;
